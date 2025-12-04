@@ -1,61 +1,61 @@
 #include <console.hpp>
 
-console::console(
-  int port,
-  std::string network,
-  std::string name,
-  std::string version
-): _PORT(port), _NETWORK(network), _NAME(name), _VERSION(version) {}
+Console console; /* actual definition */
 
-void console::init(void) const throw() {
+void Console::init(
+  int port = 3000,
+  std::string network = "127.0.0.1",
+  std::string name = "www",
+  std::string version = "0.1.0"
+) const throw() {
   std::cout
   << std::endl
   << "> "
-  << this->_NAME
+  << name
   << "@"
-  << this->_VERSION
+  << version
   << " dev"
   << std::endl
   << "> webserver dev -p "
-  << this->_PORT
+  << port
   << std::endl
   << std::endl
   << "\033[1;38;2;43;14;68m   ▲ Webserver 1.0.0\033[0m"
   << std::endl
   << "   - Local:   http://localhost:"
-  << this->_PORT
+  << port
   << std::endl
   << "   - Network: http://"
-  << this->_NETWORK
+  << network
   << ":"
-  << this->_PORT
+  << port
   << std::endl
   << std::endl
   << " \033[38;2;76;175;80m✓\033[0m Starting..."
   << std::endl;
 }
 
-void console::success(char const* s) const throw() {
+void Console::success(char const* s) const throw() {
   std::cout << " \033[38;2;76;175;80m✓\033[0m " << s << std::endl;
 }
 
-void console::issue(char const* i) const throw() {
+void Console::issue(char const* i) const throw() {
   std::cout << " \033[38;2;255;82;82m✗\033[0m " << i << std::endl;
 }
 
-void console::info(char const* i) const throw() {
+void Console::info(char const* i) const throw() {
   std::cout << " \033[38;2;66;165;245m•\033[0m " << i << std::endl;
 }
 
-void console::warning(char const* w) const throw() {
+void Console::warning(char const* w) const throw() {
   std::cout << " \033[38;2;255;165;0m•\033[0m " << w << std::endl;
 }
 
-void console::log(char const* l) const throw() {
+void Console::log(char const* l) const throw() {
   std::cout << " " << l << std::endl;
 }
 
-void console::GET(char const* path, int status, char const* in) const throw() {
+void Console::GET(char const* path, int status, char const* in) const throw() {
   std::string statusColor = "\033[0m";
   if (status >= 200 && status < 300)
     statusColor = "\033[38;2;76;175;80m";
@@ -77,7 +77,7 @@ void console::GET(char const* path, int status, char const* in) const throw() {
   << std::endl;
 }
 
-void console::POST(char const* path, int status, char const* in) const throw() {
+void Console::POST(char const* path, int status, char const* in) const throw() {
   std::string statusColor = "\033[0m";
   if (status >= 200 && status < 300)
     statusColor = "\033[38;2;76;175;80m";
@@ -99,7 +99,7 @@ void console::POST(char const* path, int status, char const* in) const throw() {
   << std::endl;
 }
 
-void console::DELETE(char const* path, int status, char const* in) const throw() {
+void Console::DELETE(char const* path, int status, char const* in) const throw() {
   std::string statusColor = "\033[0m";
   if (status >= 200 && status < 300)
     statusColor = "\033[38;2;76;175;80m";

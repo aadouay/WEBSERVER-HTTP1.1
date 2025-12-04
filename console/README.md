@@ -1,8 +1,6 @@
 ## console global object:
 
-### Methods
-
-**`init()`**  
+**`init(int port = 3000, std::string network = "127.0.0.1", std::string name = "www", std::string version = "0.1.0")`**  
 Initializes and displays the server startup banner with port information, local and network URLs.
 
 **`success(char const* s)`**  

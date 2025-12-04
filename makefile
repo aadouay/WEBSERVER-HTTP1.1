@@ -3,8 +3,10 @@ COMPLIER = c++
 DELETE   = rm -rf
 NAME     = webserver
 CPPFLAGS = -Wextra -Wall -Werror -std=c++98
-HEADERS  = -I./console
-OBJECTS  = ./console/console.o
+HEADERS  = -I./console \
+		   -I./main
+OBJECTS  = ./console/console.o \
+		   ./main/main.o
 
 # rules
 all : $(NAME)
