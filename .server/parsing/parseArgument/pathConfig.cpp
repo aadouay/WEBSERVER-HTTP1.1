@@ -6,7 +6,7 @@ void pathConfig(char* file, clock_tt startClock) {
   read_json(file, jsonConfigFile);
 
   // // Iterate through the servers array
-  // boost::property_tree::ptree servers = jsonConfigFile.get_child("serverrs");
+  // boost::property_tree::ptree servers = jsonConfigFile.get_child("servers");
   // for (boost::property_tree::ptree::iterator it = servers.begin(); it != servers.end(); ++it) {
   //   // Get the name from each server object
   //   std::string name = it->second.get<std::string>("name");
