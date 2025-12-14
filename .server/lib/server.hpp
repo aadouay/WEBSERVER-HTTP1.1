@@ -10,7 +10,19 @@ class rt {
   public:
     inline std::string& path(void) throw() { return this->_path; }
     inline std::string& source(void) throw() { return this->_source; }
-    inline std::vector<std::string>& methods(void) throw() { return this->_methods; }
+    inline std::string& method(unsigned int index) throw() { return this->_methods[index]; }
+
+    inline std::size_t length(void) const throw() { return this->_methods.size(); }
+
+    std::string& create(void) throw() {
+      std::string newN;
+      this->_methods.push_back(newN);
+      return this->_methods.back();
+    }
+    std::string& add(const std::string& str) throw() {
+      this->_methods.push_back(str);
+      return this->_methods.back();
+    }
 };
 
 class ctr {
@@ -41,6 +53,17 @@ class ctr {
     inline std::string& root(void) throw() { return this->_root; }
 
     rt& route(unsigned int index) throw() { return this->_routes[index]; }
+    inline std::size_t length(void) const throw() { return this->_routes.size(); }
+
+    rt& create(void) throw() {
+      rt newN;
+      this->_routes.push_back(newN);
+      return this->_routes.back();
+    }
+    rt& add(const rt& route) throw() {
+      this->_routes.push_back(route);
+      return this->_routes.back();
+    }
 };
 
 class Server {
@@ -49,6 +72,16 @@ class Server {
   public:
     inline std::size_t length(void) const throw() { return this->_servers.size(); }
     ctr& operator[](unsigned int index) throw() { return this->_servers[index]; }
+
+    ctr& create(void) throw() {
+      ctr newN;
+      this->_servers.push_back(newN);
+      return this->_servers.back();
+    }
+    ctr& add(const ctr& server) throw() {
+      this->_servers.push_back(server);
+      return this->_servers.back();
+    }
 };
 
 extern Server server;
