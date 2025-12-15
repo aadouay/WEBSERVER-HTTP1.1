@@ -2,6 +2,9 @@
 #include <iostream>
 #include <cstdlib>
 
+static std::vector<std::string> routeKeys;
+static std::vector<std::string> serverKeys;
+
 static void skipWhitespace(std::string &value)
 {
   std::size_t index = 0;
@@ -57,8 +60,7 @@ static int isString(std::string const &value)
 // -----------------------------------------------------------------------
 static void storeRouteKeyValue(std::string const &key, std::string const &value, rt &route)
 {
-  static std::vector<std::string> temp;
-  duplicateKey(temp, key);
+  duplicateKey(routeKeys, key);
   if (key == "path")
   {
     if (isString(value))
@@ -175,17 +177,22 @@ static int extractRouteKey(std::string &configFileContent, std::size_t &pos, rt 
     }
     else if (configFileContent[pos] == '\"')
     {
-      int counter = -1;
-      while (configFileContent[pos])
+      pos++;  // Skip opening "
+  
+      // Find closing " (handle escaped quotes)
+      while (configFileContent[pos] && configFileContent[pos] != '\"')
       {
-        if (configFileContent[pos] == '\"')
-          counter++;
-        if (configFileContent[pos] == ',' || configFileContent[pos] == ']' || configFileContent[pos] == '}')
-          break;
-        if (counter == 2)
-          throw std::runtime_error("expected ',' or '}' after key-value pair");
+        if (configFileContent[pos] == '\0')
+          throw std::runtime_error("unterminated string");
+        
+        // Skip escaped characters
+        if (configFileContent[pos] == '\\' && configFileContent[pos + 1] != '\0')
+          pos++;  // Skip the backslash and the next character
+        
         pos++;
       }
+      
+      pos++;
     }
     else
     {
@@ -259,8 +266,7 @@ static int extractRoutes(std::string &value, std::size_t &pos, ctr &s)
 
 static void storeKeyValue(std::string &key, std::string &value, ctr &s)
 {
-  static std::vector<std::string> temp;
-  duplicateKey(temp, key);
+  duplicateKey(serverKeys, key);
   if (key == "port")
   {
     if (isDigit(value))
@@ -272,7 +278,6 @@ static void storeKeyValue(std::string &key, std::string &value, ctr &s)
   }
   else if (key == "name")
   {
-    std::cout << "hello: " << value << std::endl;
     if (isString(value))
       throw std::runtime_error("name value must be a string");
     s.name() = value.substr(1, value.length() - 2);
@@ -333,7 +338,6 @@ static void storeKeyValue(std::string &key, std::string &value, ctr &s)
   }
   else if (key == "root")
   {
-    std::cout << "hello: " << value << std::endl;
     if (isString(value))
       throw std::runtime_error("root value must be a string");
     s.root() = value.substr(1, value.length() - 2);
@@ -393,17 +397,22 @@ static int extractKey(std::string const &configFileContent, std::size_t &pos, ct
     }
     else if (configFileContent[pos] == '\"')
     {
-      int counter = -1;
-      while (configFileContent[pos])
+      pos++;  // Skip opening "
+  
+      // Find closing " (handle escaped quotes)
+      while (configFileContent[pos] && configFileContent[pos] != '\"')
       {
-        if (configFileContent[pos] == '\"')
-          counter++;
-        if (configFileContent[pos] == ',' || configFileContent[pos] == ']' || configFileContent[pos] == '}')
-          break;
-        if (counter == 2)
-          throw std::runtime_error("expected ',' or '}' after key-value pair");
+        if (configFileContent[pos] == '\0')
+          throw std::runtime_error("unterminated string");
+        
+        // Skip escaped characters
+        if (configFileContent[pos] == '\\' && configFileContent[pos + 1] != '\0')
+          pos++;  // Skip the backslash and the next character
+        
         pos++;
       }
+      
+      pos++;
     }
     else
     {
@@ -487,6 +496,8 @@ void json(std::string &configFileContent)
   {
     if (extractObject(configFileContent, pos))
       break;
+    serverKeys.clear();
+    routeKeys.clear();
   }
   if (configFileContent[pos] != ']')
     throw std::runtime_error("expected ']' at the end of servers array");
