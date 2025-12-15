@@ -180,7 +180,7 @@ static int extractRouteKey(std::string &configFileContent, std::size_t &pos, rt 
       {
         if (configFileContent[pos] == '\"')
           counter++;
-        if (configFileContent[pos] == ',')
+        if (configFileContent[pos] == ',' || configFileContent[pos] == ']' || configFileContent[pos] == '}')
           break;
         if (counter == 2)
           throw std::runtime_error("expected ',' or '}' after key-value pair");
@@ -272,6 +272,7 @@ static void storeKeyValue(std::string &key, std::string &value, ctr &s)
   }
   else if (key == "name")
   {
+    std::cout << "hello: " << value << std::endl;
     if (isString(value))
       throw std::runtime_error("name value must be a string");
     s.name() = value.substr(1, value.length() - 2);
@@ -332,6 +333,7 @@ static void storeKeyValue(std::string &key, std::string &value, ctr &s)
   }
   else if (key == "root")
   {
+    std::cout << "hello: " << value << std::endl;
     if (isString(value))
       throw std::runtime_error("root value must be a string");
     s.root() = value.substr(1, value.length() - 2);
@@ -396,7 +398,7 @@ static int extractKey(std::string const &configFileContent, std::size_t &pos, ct
       {
         if (configFileContent[pos] == '\"')
           counter++;
-        if (configFileContent[pos] == ',')
+        if (configFileContent[pos] == ',' || configFileContent[pos] == ']' || configFileContent[pos] == '}')
           break;
         if (counter == 2)
           throw std::runtime_error("expected ',' or '}' after key-value pair");
