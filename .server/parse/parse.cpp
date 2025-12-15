@@ -36,6 +36,18 @@ static int configRules(void) {
   console.log("                       ├───── path:   The URL path for the route (required)");
   console.log("                       ├───── source: The file to serve for this route (required)");
   console.log("                       └───── method: An array of allowed HTTP methods for this route (optional, default: [\"GET\"])");
+  console.log("");
+  console.info("Josn format shold be like this:");
+  console.log("{");
+  console.log("  \"servers\": [");
+  console.log("    {");
+  console.log("      ...");
+  console.log("      ...");
+  console.log("      ...");
+  console.log("    }");
+  console.log("    ...");
+  console.log("  ]");
+  console.log("}");
   return 2;
 }
 

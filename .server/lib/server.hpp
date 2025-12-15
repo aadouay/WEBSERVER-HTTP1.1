@@ -27,30 +27,32 @@ class rt {
 
 class ctr {
   private:
-    unsigned int _port;
+    std::size_t _port;
     std::string _name;
     std::string _version;
     std::string _notfound;
     std::string _servererror;
     std::string _log;
-    unsigned int _bodylimit;
-    unsigned int _timeout;
+    std::size_t _bodylimit;
+    std::size_t _timeout;
     std::string _uploaddir;
     std::string _index;
     std::string _root;
     std::vector<rt> _routes;
   public:
-    inline unsigned int& port(void) throw() { return this->_port; }
+    inline std::size_t& port(void) throw() { return this->_port; }
     inline std::string& name(void) throw() { return this->_name; }
     inline std::string& version(void) throw() { return this->_version; }
     inline std::string& notfound(void) throw() { return this->_notfound; }
     inline std::string& servererror(void) throw() { return this->_servererror; }
     inline std::string& log(void) throw() { return this->_log; }
-    inline unsigned int& bodylimit(void) throw() { return this->_bodylimit; }
-    inline unsigned int& timeout(void) throw() { return this->_timeout; }
+    inline std::size_t& bodylimit(void) throw() { return this->_bodylimit; }
+    inline std::size_t& timeout(void) throw() { return this->_timeout; }
     inline std::string& uploaddir(void) throw() { return this->_uploaddir; }
     inline std::string& index(void) throw() { return this->_index; }
     inline std::string& root(void) throw() { return this->_root; }
+
+    ctr(): _port(0), _bodylimit(0), _timeout(0) {}
 
     rt& route(unsigned int index) throw() { return this->_routes[index]; }
     inline std::size_t length(void) const throw() { return this->_routes.size(); }
