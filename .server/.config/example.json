@@ -1,15 +1,15 @@
 {
   "servers": [
     {
-      "port": 3008,
-      "name": "example",
-      "version": "1.0.0",
+      "port": "3000",
+      "name": "my-app",
+      "version": "0.1.0",
       "notfound": "./404.html",
       "servererror": "./500.html",
       "log": "./access.log",
-      "bodylimit": 10485760,
-      "timeout": 30000,
-      "uploaddir": "./uploads",
+      "bodylimit": "1048576",
+      "timeout": "30000",
+      "uploaddir": "./downloads",
       "index": "./index.html",
       "root": "./",
       "routes": [
@@ -17,16 +17,6 @@
           "path": "/",
           "source": "./index.html",
           "method": ["GET"]
-        },
-        {
-          "path": "/api/users",
-          "source": "./users.json",
-          "method": ["GET", "POST"]
-        },
-        {
-          "path": "/upload",
-          "source": "./upload.html",
-          "method": ["GET", "POST"]
         }
       ]
     }

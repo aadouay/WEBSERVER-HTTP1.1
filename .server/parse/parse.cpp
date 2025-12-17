@@ -34,10 +34,10 @@ static int configRules(void) {
   console.log("         └───── routes:      An array of route configurations (required)");
   console.log("                       |");
   console.log("                       ├───── path:   The URL path for the route (required)");
-  console.log("                       ├───── source: The file to serve for this route (required)");
+  console.log("                       ├───── source: The file to serve for this route (optional, default: <index>)");
   console.log("                       └───── method: An array of allowed HTTP methods for this route (optional, default: [\"GET\", \"POST\"])");
   console.log("");
-  console.info("Josn format shold be like this:");
+  console.info("Josn format shold be like this: (values as strings where applicable)");
   console.log("{");
   console.log("  \"servers\": [");
   console.log("    {");

@@ -11,38 +11,58 @@ static void fillDefault(void) {
     if (server[i].name().empty())
       throw std::runtime_error("web application name is required");
     else
-      server[i].name() = "app/" + server[i].name();
+      server[i].name() = server[i].name();
     if (server[i].version().empty())
       server[i].version() = "0.1.0";
     if (server[i].root().empty())
-      server[i].root() = "./";
-
+      server[i].root() = "app/" + server[i].name() + "/";
+    else
+      server[i].root() = "app/" + server[i].name() + "/" + server[i].root() + "/";
+    if (server[i].index().empty())
+      server[i].index() = "./index.html";
     if (server[i].notfound().empty())
       server[i].notfound() = ".server/.build/not-found.html";
     else
-      server[i].notfound() = "app/" + server[i].name() + "/" + server[i].root() + "/" + server[i].notfound();
-
+      server[i].notfound() = server[i].root() + server[i].notfound();
     if (server[i].servererror().empty())
-      server[i].servererror() = "app/" + server[i].name() + "/" + server[i].root() + "/" + server[i].servererror();
+      server[i].servererror() = ".server/.build/server-error.html";
+    else
+      server[i].servererror() = server[i].root() + server[i].servererror();
     if (server[i].log().empty())
       server[i].log() = ".server/.log/" + server[i].name() + "/" + server[i].name() + ".log";
     else
-      server[i].log() = "app/" + server[i].name() + server[i].root() + "/" + server[i].log();
+      server[i].log() = server[i].root() + server[i].log();
+    if (server[i].uploaddir().empty())
+      server[i].uploaddir() = server[i].root() + "/uploads";
+    else
+      server[i].uploaddir() = server[i].root() + server[i].uploaddir();
     if (!server[i].bodylimit())
       server[i].bodylimit() = 1048576;
     if (!server[i].timeout())
       server[i].timeout() = 30000;
-    if (server[i].uploaddir().empty())
-      server[i].uploaddir() = "app/" + server[i].name() + "/uploads";
-    else
-      server[i].uploaddir() = "app/" + server[i].name() + "/" + server[i].root() + "/" + server[i].uploaddir();
-    if (server[i].index().empty())
-      server[i].index() = "index.html";
     if (server[i].length() == 0)
       throw std::runtime_error("routes are required for each server");
     std::vector<std::string> tempPaths;
     for (std::size_t j = 0; j < server[i].length(); j++) {
+      if (server[i].route(j).path().empty())
+        throw std::runtime_error("route path is required");
       tempPaths.push_back(server[i].route(j).path());
+      if (server[i].route(j).path()[0] != '/')
+        throw std::runtime_error("route path must start with '/'");
+      for (std::size_t xx = 0; xx < server[i].route(j).path().length(); xx++) {
+        if (server[i].route(j).path()[xx] == '/' && server[i].route(j).path()[xx + 1] == '/')
+          throw std::runtime_error("route path cannot contain double slashes");
+        if (server[i].route(j).path()[xx] == '\\')
+          throw std::runtime_error("route path cannot contain backslashes");
+        if (
+          server[i].route(j).path()[xx] == ' '  ||
+          server[i].route(j).path()[xx] == '\n' ||
+          server[i].route(j).path()[xx] == '\r' ||
+          server[i].route(j).path()[xx] == '\t' ||
+          server[i].route(j).path()[xx] == '\v' ||
+          server[i].route(j).path()[xx] == '\f')
+          throw std::runtime_error("route path cannot contain whitespace characters");
+      }
     }
     for (std::size_t m = 0; m < tempPaths.size(); m++) {
       for (std::size_t n = m + 1; n < tempPaths.size(); n++) {
@@ -57,11 +77,10 @@ static void fillDefault(void) {
         route.add("GET");
         route.add("POST");
       }
-      if (route.path().empty())
-        throw std::runtime_error("route path is required");
       if (route.source().empty())
-        throw std::runtime_error("route source is required");
-
+        route.source() = server[i].root() + server[i].index();
+      else
+        route.source() = server[i].root() + route.source();
       std::vector<std::string> tempMethods;
       for (std::size_t k = 0; k < route.length(); k++) {
         tempMethods.push_back(route.method(k));
@@ -82,7 +101,7 @@ static void fillDefault(void) {
   for (std::size_t i = 0; i < temp.size(); i++) {
     for (std::size_t j = i + 1; j < temp.size(); j++) {
       if (temp[i] == temp[j])
-        throw std::runtime_error("duplicate server name: " + temp[i]);
+        throw std::runtime_error("duplicate web application: " + temp[i]);
     }
   }
   temp.clear();
@@ -93,9 +112,16 @@ std::vector<std::string> routeKeys;
 
 static void skipWhitespace(std::string &value) {
   std::size_t index = 0;
+  bool insideQuotes = false;
+
   while (value[index]) {
-    if (value[index] == ' ' || value[index] == '\n' || value[index] == '\r' ||
-        value[index] == '\t' || value[index] == '\v' || value[index] == '\f')
+    bool whiteSpaces = value[index] == ' ' || value[index] == '\n' || value[index] == '\r' ||
+      value[index] == '\t' || value[index] == '\v' || value[index] == '\f';
+
+    if (value[index] == '\"')
+      insideQuotes = !insideQuotes;
+
+    if (whiteSpaces && !insideQuotes)
       value.erase(index, 1);
     else
       index++;
@@ -292,7 +318,6 @@ static int extractRoutes(std::string const &value, std::size_t &pos, ctr &s) {
   while (true) {
     if (extractRouteKey(value, pos, route))
       break;
-    routeKeys.clear();
   }
   if (value[pos] != '}')
     throw std::runtime_error("expected '}'");
@@ -309,11 +334,14 @@ static int extractRoutes(std::string const &value, std::size_t &pos, ctr &s) {
 static void storeKeyValue(std::string const &key, std::string const &value, ctr &s) {
   duplicateKey(serverKeys, key);
   if (key == "port") {
-    if (isDigit(value))
+    if (isString(value))
       throw std::runtime_error("invalid port value");
-    int port = std::atoi(value.c_str());
+    std::string temp = value.substr(1, value.length() - 2);
+    if (isDigit(temp))
+      throw std::runtime_error("invalid port value");
+    long long port = std::atoll(temp.c_str());
     if (port < 1024 || port > 65535)
-      throw std::runtime_error("port must be between 1024 and 65535");
+      throw std::runtime_error("invalid port value");
     s.port() = static_cast<std::size_t>(port);
   }
   else if (key == "name") {
@@ -342,19 +370,25 @@ static void storeKeyValue(std::string const &key, std::string const &value, ctr 
     s.log() = value.substr(1, value.length() - 2);
   }
   else if (key == "bodylimit") {
-    if (isDigit(value))
+    if (isString(value))
       throw std::runtime_error("invalid bodylimit value");
-    int bodylimit = std::atoi(value.c_str());
-    if (bodylimit < 0)
-      throw std::runtime_error("bodylimit must be a non-negative number");
+    std::string temp = value.substr(1, value.length() - 2);
+    if (isDigit(temp))
+      throw std::runtime_error("invalid bodylimit value");
+    long long bodylimit = std::atoll(temp.c_str());
+    if (bodylimit < 1024 || bodylimit > 10737418240LL)
+      throw std::runtime_error("invalid bodylimit value");
     s.bodylimit() = static_cast<std::size_t>(bodylimit);
   }
   else if (key == "timeout") {
-    if (isDigit(value))
+    if (isString(value))
       throw std::runtime_error("invalid timeout value");
-    int timeout = std::atoi(value.c_str());
-    if (timeout < 0)
-      throw std::runtime_error("timeout must be a non-negative number");
+    std::string temp = value.substr(1, value.length() - 2);
+    if (isDigit(temp))
+      throw std::runtime_error("invalid timeout value");
+    long long timeout = std::atoll(temp.c_str());
+    if (timeout <= 0 || timeout > 3600000)
+      throw std::runtime_error("invalid timeout value");
     s.timeout() = static_cast<std::size_t>(timeout);
   }
   else if (key == "uploaddir") {
@@ -380,6 +414,7 @@ static void storeKeyValue(std::string const &key, std::string const &value, ctr 
     while (true) {
       if (extractRoutes(value, pos, s))
         break;
+      routeKeys.clear();
     }
     if (value[pos] != ']')
       throw std::runtime_error("expected ']' at the end of servers array");
