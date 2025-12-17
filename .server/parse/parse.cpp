@@ -31,7 +31,7 @@ static int configRules(void) {
   console.log("         ├───── uploaddir:   Directory to store uploaded files (optional, default: app/<name>/uploads)");
   console.log("         ├───── index:       Default file to serve when accessing a directory (optional, default: index.html)");
   console.log("         ├───── root:        Root directory for serving static files (optional, default: /app/<name>/)");
-  console.log("         └───── routes:      An array of route configurations (required)");
+  console.log("         └───── routes:      An array of route configurations (optional)");
   console.log("                       |");
   console.log("                       ├───── path:   The URL path for the route (required)");
   console.log("                       ├───── source: The file to serve for this route (optional, default: <index>)");

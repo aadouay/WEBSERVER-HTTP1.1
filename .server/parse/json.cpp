@@ -40,58 +40,58 @@ static void fillDefault(void) {
       server[i].bodylimit() = 1048576;
     if (!server[i].timeout())
       server[i].timeout() = 30000;
-    if (server[i].length() == 0)
-      throw std::runtime_error("routes are required for each server");
-    std::vector<std::string> tempPaths;
-    for (std::size_t j = 0; j < server[i].length(); j++) {
-      if (server[i].route(j).path().empty())
-        throw std::runtime_error("route path is required");
-      tempPaths.push_back(server[i].route(j).path());
-      if (server[i].route(j).path()[0] != '/')
-        throw std::runtime_error("route path must start with '/'");
-      for (std::size_t xx = 0; xx < server[i].route(j).path().length(); xx++) {
-        if (server[i].route(j).path()[xx] == '/' && server[i].route(j).path()[xx + 1] == '/')
-          throw std::runtime_error("route path cannot contain double slashes");
-        if (server[i].route(j).path()[xx] == '\\')
-          throw std::runtime_error("route path cannot contain backslashes");
-        if (
-          server[i].route(j).path()[xx] == ' '  ||
-          server[i].route(j).path()[xx] == '\n' ||
-          server[i].route(j).path()[xx] == '\r' ||
-          server[i].route(j).path()[xx] == '\t' ||
-          server[i].route(j).path()[xx] == '\v' ||
-          server[i].route(j).path()[xx] == '\f')
-          throw std::runtime_error("route path cannot contain whitespace characters");
-      }
-    }
-    for (std::size_t m = 0; m < tempPaths.size(); m++) {
-      for (std::size_t n = m + 1; n < tempPaths.size(); n++) {
-        if (tempPaths[m] == tempPaths[n])
-          throw std::runtime_error("duplicate method in route: " + tempPaths[m]);
-      }
-    }
-    tempPaths.clear();
-    for (std::size_t j = 0; j < server[i].length(); j++) {
-      rt& route = server[i].route(j);
-      if (route.length() == 0) {
-        route.add("GET");
-        route.add("POST");
-      }
-      if (route.source().empty())
-        route.source() = server[i].root() + server[i].index();
-      else
-        route.source() = server[i].root() + route.source();
-      std::vector<std::string> tempMethods;
-      for (std::size_t k = 0; k < route.length(); k++) {
-        tempMethods.push_back(route.method(k));
-      }
-      for (std::size_t m = 0; m < tempMethods.size(); m++) {
-        for (std::size_t n = m + 1; n < tempMethods.size(); n++) {
-          if (tempMethods[m] == tempMethods[n])
-            throw std::runtime_error("duplicate method in route: " + tempMethods[m]);
+    if (server[i].length() != 0) {
+      std::vector<std::string> tempPaths;
+      for (std::size_t j = 0; j < server[i].length(); j++) {
+        if (server[i].route(j).path().empty())
+          throw std::runtime_error("route path is required");
+        tempPaths.push_back(server[i].route(j).path());
+        if (server[i].route(j).path()[0] != '/')
+          throw std::runtime_error("route path must start with '/'");
+        for (std::size_t xx = 0; xx < server[i].route(j).path().length(); xx++) {
+          if (server[i].route(j).path()[xx] == '/' && server[i].route(j).path()[xx + 1] == '/')
+            throw std::runtime_error("route path cannot contain double slashes");
+          if (server[i].route(j).path()[xx] == '\\')
+            throw std::runtime_error("route path cannot contain backslashes");
+          if (
+            server[i].route(j).path()[xx] == ' '  ||
+            server[i].route(j).path()[xx] == '\n' ||
+            server[i].route(j).path()[xx] == '\r' ||
+            server[i].route(j).path()[xx] == '\t' ||
+            server[i].route(j).path()[xx] == '\v' ||
+            server[i].route(j).path()[xx] == '\f')
+            throw std::runtime_error("route path cannot contain whitespace characters");
         }
       }
-      tempMethods.clear();
+      for (std::size_t m = 0; m < tempPaths.size(); m++) {
+        for (std::size_t n = m + 1; n < tempPaths.size(); n++) {
+          if (tempPaths[m] == tempPaths[n])
+            throw std::runtime_error("duplicate method in route: " + tempPaths[m]);
+        }
+      }
+      tempPaths.clear();
+      for (std::size_t j = 0; j < server[i].length(); j++) {
+        rt& route = server[i].route(j);
+        if (route.length() == 0) {
+          route.add("GET");
+          route.add("POST");
+        }
+        if (route.source().empty())
+          route.source() = server[i].root() + server[i].index();
+        else
+          route.source() = server[i].root() + route.source();
+        std::vector<std::string> tempMethods;
+        for (std::size_t k = 0; k < route.length(); k++) {
+          tempMethods.push_back(route.method(k));
+        }
+        for (std::size_t m = 0; m < tempMethods.size(); m++) {
+          for (std::size_t n = m + 1; n < tempMethods.size(); n++) {
+            if (tempMethods[m] == tempMethods[n])
+              throw std::runtime_error("duplicate method in route: " + tempMethods[m]);
+          }
+        }
+        tempMethods.clear();
+      }
     }
   }
   std::vector<std::string> temp;
