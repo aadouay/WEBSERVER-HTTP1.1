@@ -10,7 +10,7 @@
       "bodylimit": "1048576",
       "timeout": "30000",
       "uploaddir": "./downloads",
-      "index": "./index.html",
+      "index": "index.html",
       "root": "./",
       "routes": [
         {

@@ -19,7 +19,11 @@ static void fillDefault(void) {
     else
       server[i].root() = "app/" + server[i].name() + "/" + server[i].root() + "/";
     if (server[i].index().empty())
-      server[i].index() = "./index.html";
+      server[i].index() = "index.html";
+    else {
+      if (server[i].index()[0] == '.' || server[i].index()[0] == '/')
+        throw std::runtime_error("index file must be relative");
+    }
     if (server[i].notfound().empty())
       server[i].notfound() = ".server/.build/not-found.html";
     else
@@ -77,7 +81,7 @@ static void fillDefault(void) {
           route.add("POST");
         }
         if (route.source().empty())
-          route.source() = server[i].root() + server[i].index();
+          throw std::runtime_error("route source is required");
         else
           route.source() = server[i].root() + route.source();
         std::vector<std::string> tempMethods;

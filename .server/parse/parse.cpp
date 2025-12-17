@@ -34,7 +34,7 @@ static int configRules(void) {
   console.log("         └───── routes:      An array of route configurations (optional)");
   console.log("                       |");
   console.log("                       ├───── path:   The URL path for the route (required)");
-  console.log("                       ├───── source: The file to serve for this route (optional, default: <index>)");
+  console.log("                       ├───── source: The file to serve for this route (required)");
   console.log("                       └───── method: An array of allowed HTTP methods for this route (optional, default: [\"GET\", \"POST\"])");
   console.log("");
   console.info("Josn format shold be like this: (values as strings where applicable)");
@@ -88,8 +88,10 @@ static int autoConfig(void) {
   }
 }
 
+void loadPermissions(void);
 int parse(int ac, char* av[]) {
   if (ac == 2) {
+    loadPermissions();
     std::string arg = av[1];
     if (arg == "--help")
       return help();
