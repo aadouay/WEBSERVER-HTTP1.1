@@ -186,7 +186,7 @@ static void storeRouteKeyValue(std::string const &key, std::string const &value,
         throw std::runtime_error("unterminated string in method array");
 
       std::string method = value.substr(methodStart, pos - methodStart);
-      if (method != "GET" && method != "POST" && method != "POST") {
+      if (method != "GET" && method != "POST" && method != "DELETE") {
         if (method == "PUT" || method == "PATCH" || method == "HEAD" || method == "OPTIONS")
           throw std::runtime_error("unsupported HTTP method: " + method);
         throw std::runtime_error("invalid HTTP method: " + method);
@@ -313,6 +313,7 @@ static int extractRouteKey(std::string const &value, std::size_t &pos, rt &route
 static int extractRoutes(std::string const &value, std::size_t &pos, ctr &s) {
   if (value[pos] != '{')
     throw std::runtime_error("expected '{'");
+  routeKeys.clear();
   rt &route = s.create();
   pos++;
   while (true) {
@@ -414,7 +415,6 @@ static void storeKeyValue(std::string const &key, std::string const &value, ctr 
     while (true) {
       if (extractRoutes(value, pos, s))
         break;
-      routeKeys.clear();
     }
     if (value[pos] != ']')
       throw std::runtime_error("expected ']' at the end of servers array");
