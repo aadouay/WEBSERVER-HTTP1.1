@@ -116,6 +116,7 @@ static void fillDefault(void) {
       if (!route.redirect().empty()
           && (!route.source().empty() || hasCgi))
         throw std::runtime_error("redirect route cannot have source or cgi settings");
+      route.cgiScript() = server[i].root() + route.cgiScript();
     }
   }
   std::vector<std::string> temp;

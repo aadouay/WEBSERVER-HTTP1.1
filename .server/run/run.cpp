@@ -7,9 +7,42 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
-#include <sstream>
+#include <ifaddrs.h>
 
-int run(long long start) {
+std::string getNetworkIP() {
+    struct ifaddrs *ifaddr, *ifa;
+    
+    if (getifaddrs(&ifaddr) == -1) {
+        return "0.0.0.0";
+    }
+    
+    std::string result = "0.0.0.0";
+    
+    for (ifa = ifaddr; ifa != 0; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == 0) continue;
+        
+        // Check for IPv4 address
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            char addressBuffer[INET_ADDRSTRLEN];
+            void* addr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+            inet_ntop(AF_INET, addr, addressBuffer, INET_ADDRSTRLEN);
+            
+            std::string ip = addressBuffer;
+            // Skip loopback (127.x.x.x)
+            if (ip.substr(0, 3) != "127") {
+                result = ip;
+                break;
+            }
+        }
+    }
+    
+    freeifaddrs(ifaddr);
+    return result;
+}
+
+int run(long long start) { (void)start;
+
+  std::string networkIP = getNetworkIP();
 
   for (std::size_t i = 0; i < server.length(); i++) {
 
@@ -28,7 +61,7 @@ int run(long long start) {
     struct sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(server[i].port());
+    address.sin_port = htons(server[i].port()); // bind to specified port
 
     if (bind(serverFD, (struct sockaddr*)&address, sizeof(address)) < 0) {
       console.issue("Failed to bind socket for " + server[i].name());
@@ -43,7 +76,7 @@ int run(long long start) {
       continue;
     }
 
-    console.init(server[i].port(), "0.0.0.0", server[i].name(), server[i].version());
+    console.init(server[i].port(), networkIP, server[i].name(), server[i].version());
     // console.success("Ready in " + (num2str(time::calc(start, time::clock()))) + "ms");
 
     // Accept and handle requests
@@ -64,6 +97,7 @@ int run(long long start) {
       const char* response = 
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/plain\r\n"
+        "Content-Typpe: application/json\r\n" 
         "Content-Length: 5\r\n"
         "\r\n"
         "hello";
