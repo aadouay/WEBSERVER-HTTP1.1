@@ -88,16 +88,10 @@ int run(long long start) {
 
         long long startRequestTime = time::clock();
 
-        char* requestBuffer = new char(4096 * server[i].bodylimit()); // buffer to store request
-        if (!requestBuffer) {
-          console.issue("Failed to allocate memory for request buffer");
-          close(client);
-          continue;
-        }
+        char requestBuffer[server[i].bodylimit() + 2048]; // buffer to store request
 
         if (read(client, requestBuffer, sizeof(requestBuffer)) < 0) { // store request
           console.issue("Failed to read from client");
-          delete requestBuffer;
           close(client);
           continue;
         }
@@ -105,37 +99,42 @@ int run(long long start) {
         request req(requestBuffer); // parse request
 
         if (req.getBadRequest()) {
-          // check if user create page error for this bad request code
-          // std::ifstream file;
-          // std::string customErrorPagePath = server[i];
-          // if (!customErrorPagePath.empty()) {
-          //   file.open(customErrorPagePath.c_str());
-          // }
+          std::stringstream buffer;
+          buffer << req.getBadRequest();
+          std::string badReqStr = buffer.str();
 
+          // check if user create page error for this bad request code
+          std::ifstream file;
+          std::string customErrorPagePath = server[i].errorPages()[badReqStr];
+          if (!customErrorPagePath.empty()) {
+            file.open(customErrorPagePath.c_str());
+          }
+          if (file.is_open()) {
+            std::stringstream body;
+            body << file.rdbuf();
+            file.close();
+            std::stringstream response;
+            response << "HTTP/1.1 " << req.getBadRequest() << " " << status(req.getBadRequest()).message() << "\r\n\r\n" << body.str();
+            std::string responseStr = response.str();
+            send(client, responseStr.c_str(), responseStr.length(), 0);
+            console.METHODS(req.getMethod(), req.getPath(), req.getBadRequest(), time::calcl(startRequestTime, time::clock()));
+            close(client);
+            continue;
+          }
+          file.close();
+
+          // send default error page
+          std::string body = "<html><head><title>" + badReqStr + " " + status(req.getBadRequest()).message() +
+          "</title></head><body><h1>" + badReqStr + " " + status(req.getBadRequest()).message() +
+          "</h1></body></html>";
           std::stringstream response;
-          response << "HTTP/1.1 " << req.getBadRequest() << " " << status(req.getBadRequest()).message() << "\r\n\r\n" << req.getBadRequest();
+          response << "HTTP/1.1 " << req.getBadRequest() << " " << status(req.getBadRequest()).message() << "\r\n\r\n" << body;
           std::string responseStr = response.str();
           send(client, responseStr.c_str(), responseStr.length(), 0);
           console.METHODS(req.getMethod(), req.getPath(), req.getBadRequest(), time::calcl(startRequestTime, time::clock()));
-          delete requestBuffer;
           close(client);
           continue;
         }
-
-        char buffer;
-        if (read(client, &buffer, 1) < 0) { // check if there's more data to read
-          std::stringstream response;
-          response << "HTTP/1.1 413 "<< status(413).message() << "\r\n\r\n" << 413;
-          std::string responseStr = response.str();
-          send(client, responseStr.c_str(), responseStr.length(), 0);
-          console.METHODS(req.getMethod(), req.getPath(), 413, time::calcl(startRequestTime, time::clock()));
-          delete requestBuffer;
-          close(client);
-          continue;
-        }
-
-        delete requestBuffer;
-        requestBuffer = NULL;
 
         if (req.getMethod() == "GET") {
           methodGet(client, req, server[i], startRequestTime);
