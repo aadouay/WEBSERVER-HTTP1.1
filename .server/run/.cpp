@@ -69,7 +69,7 @@ int run(long long start) {
 
   }
 
-  console.success("Ready in " + time::calcs(start, time::clock()) + "ms");
+  console.success("Ready in " + time::calcs(start, time::clock()) + "ms\n");
 
   while (true) {
 
