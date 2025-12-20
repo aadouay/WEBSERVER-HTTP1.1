@@ -14,7 +14,7 @@ int run(long long start) {
 
   std::string networkIP = getNetworkIP(); // get the network IP address
 
-  struct sockaddr_in *serverInfo;
+  struct sockaddr_in* serverInfo = new struct sockaddr_in;
   serverInfo->sin_family = AF_INET; // IPv4
   serverInfo->sin_addr.s_addr = INADDR_ANY; // bind to all interfaces on the device (0.0.0.0)
 
@@ -29,7 +29,7 @@ int run(long long start) {
 
     // setup server info
     serverInfo->sin_port = htons(server[i].port()); // convert to byte order
-    if (bind(sockfd, reinterpret_cast<const sockaddr *>(serverInfo), sizeof(struct sockaddr_in)) < 0) {
+    if (bind(sockfd, reinterpret_cast<const sockaddr*>(serverInfo), sizeof(struct sockaddr_in)) < 0) {
       console.issue("Failed to bind socket for " + server[i].name());
       close(sockfd);
       continue;
@@ -52,6 +52,8 @@ int run(long long start) {
 
     // add socket to list
     sockets.push_back(sockfd);
+
+    (void)start;
 
 
 
@@ -101,6 +103,7 @@ int run(long long start) {
 
   }
 
+  delete serverInfo;
 
   for (std::size_t i = 0; i < sockets.size(); i++) {
     close(sockets[i]); // close all sockets before exiting

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <map>
 
 class rt {
   private:
@@ -41,8 +42,7 @@ class ctr {
     std::size_t _port;
     std::string _name;
     std::string _version;
-    std::string _notfound;
-    std::string _servererror;
+    std::map<std::string, std::string> _errorPages;
     std::string _log;
     std::size_t _bodylimit;
     std::size_t _timeout;
@@ -54,8 +54,7 @@ class ctr {
     inline std::size_t& port(void) throw() { return this->_port; }
     inline std::string& name(void) throw() { return this->_name; }
     inline std::string& version(void) throw() { return this->_version; }
-    inline std::string& notfound(void) throw() { return this->_notfound; }
-    inline std::string& servererror(void) throw() { return this->_servererror; }
+    inline std::map<std::string, std::string>& errorPages(void) throw() { return this->_errorPages; }
     inline std::string& log(void) throw() { return this->_log; }
     inline std::size_t& bodylimit(void) throw() { return this->_bodylimit; }
     inline std::size_t& timeout(void) throw() { return this->_timeout; }

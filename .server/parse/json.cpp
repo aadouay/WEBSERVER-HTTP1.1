@@ -24,14 +24,15 @@ static void fillDefault(void) {
       if (server[i].index()[0] == '.' || server[i].index()[0] == '/')
         throw std::runtime_error("index file must be relative");
     }
-    if (server[i].notfound().empty())
-      server[i].notfound() = "DEFAULT";
-    else
-      server[i].notfound() = server[i].root() + server[i].notfound();
-    if (server[i].servererror().empty())
-      server[i].servererror() = "DEFAULT";
-    else
-      server[i].servererror() = server[i].root() + server[i].servererror();
+    for (std::map<std::string, std::string>::iterator it = server[i].errorPages().begin();
+         it != server[i].errorPages().end(); ++it) {
+      if (it->second.empty())
+        throw std::runtime_error("error page path cannot be empty for code: " + it->first);
+      if (it->second[0] == '.' || it->second[0] == '/')
+        it->second = server[i].root() + it->second;
+      else
+        throw std::runtime_error("error page path must be relative for code: " + it->first);
+    }
     if (server[i].log().empty())
       server[i].log() = ".server/.log/" + server[i].name() + "/" + server[i].name() + ".log";
     else
@@ -419,16 +420,6 @@ static void storeKeyValue(std::string const &key, std::string const &value, ctr 
       throw std::runtime_error("invalid version value");
     s.version() = value.substr(1, value.length() - 2);
   }
-  else if (key == "notfound") {
-    if (isString(value))
-      throw std::runtime_error("invalid notfound value");
-    s.notfound() = value.substr(1, value.length() - 2);
-  }
-  else if (key == "servererror") {
-    if (isString(value))
-      throw std::runtime_error("invalid servererror value");
-    s.servererror() = value.substr(1, value.length() - 2);
-  }
   else if (key == "log") {
     if (isString(value))
       throw std::runtime_error("invalid log value");
@@ -482,6 +473,11 @@ static void storeKeyValue(std::string const &key, std::string const &value, ctr 
     }
     if (value[pos] != ']')
       throw std::runtime_error("expected ']' at the end of servers array");
+  }
+  else if (!isDigit(key.substr(1, key.length() - 2))) {
+    if (isString(value))
+      throw std::runtime_error("invalid error page value");
+    s.errorPages()[key] = value.substr(1, value.length() - 2);
   }
   else
     throw std::runtime_error("unknown key: " + key);

@@ -65,8 +65,6 @@ static void createServer(std::string name) {
   currentServer.port() = defaultPort;
   defaultPort++;
   currentServer.version() = "0.1.0";
-  currentServer.notfound() = ".server/.build/not-found.html";
-  currentServer.servererror() = ".server/.build/server-error.html";
   currentServer.log() = ".server/.log/" + currentServer.name() + "/" + currentServer.name() + ".log";
   currentServer.bodylimit() = 1048576;
   currentServer.timeout() = 30000;
