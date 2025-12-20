@@ -119,6 +119,21 @@ class request {
         this->_headers[headerKey] = headerValue;
         pos4 = posEndLine + 2;
       }
+
+      if (this->_method == "POST") {
+        // check for Content-Length header
+        if (this->_headers.find("Content-Length") == this->_headers.end()) {
+          this->_badRequest = 411;
+          return;
+        }
+        std::string contentLengthStr = this->_headers["Content-Length"];
+        for (std::size_t i = 0; i < contentLengthStr.length(); i++) {
+          if (contentLengthStr[i] < '0' || contentLengthStr[i] > '9') {
+            this->_badRequest = 400;
+            return;
+          }
+        }
+      }
     }
 
     std::size_t getBadRequest(void) const throw() { return this->_badRequest; }

@@ -2,6 +2,7 @@
 #include <request.hpp>
 #include <console.hpp>
 #include <status.hpp>
+#include <time.hpp>
 #include <sys/socket.h>
 
 void methodPost(int client, request& req, ctr& currentServer, long long startRequestTime) {
