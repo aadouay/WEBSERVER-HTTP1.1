@@ -13,6 +13,7 @@
 #include <error.hpp>
 
 std::string getNetworkIP();
+void logMessage(std::string const message, ctr& server);
 void methodGet(int client, request& req, ctr& currentServer, long long startRequestTime);
 void methodPost(int client, request& req, ctr& currentServer, long long startRequestTime);
 void methodDelete(int client, request& req, ctr& currentServer, long long startRequestTime);
@@ -30,14 +31,14 @@ int run(long long start) {
     // open socket for each server
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-      console.issue("Failed to create socket for " + server[i].name());
+      logMessage("Failed to create socket for " + server[i].name(), server[i]);
       continue;
     }
 
     // set socket options to reuse address
     int opt = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-      console.issue("Failed to set SO_REUSEADDR for " + server[i].name());
+      logMessage("Failed to set SO_REUSEADDR for " + server[i].name(), server[i]);
       close(sockfd);
       continue;
     }
@@ -46,7 +47,7 @@ int run(long long start) {
     // bind(): server side, connect(): client side
     serverInfo.sin_port = htons(server[i].port()); // convert to byte order
     if (bind(sockfd, reinterpret_cast<const sockaddr*>(&serverInfo), sizeof(struct sockaddr_in)) < 0) {
-      console.issue("Failed to bind socket for " + server[i].name());
+      logMessage("Failed to bind socket for " + server[i].name(), server[i]);
       close(sockfd);
       continue;
     }
@@ -54,7 +55,7 @@ int run(long long start) {
     // create kernel queue (10)
     // The OS kernel handles incoming connections automatically and stores them in the queue
     if (listen(sockfd, 10) < 0) {
-      console.issue("Failed to listen on socket for " + server[i].name());
+      logMessage("Failed to listen on socket for " + server[i].name(), server[i]);
       close(sockfd);
       continue;
     }
@@ -92,7 +93,7 @@ int run(long long start) {
         char requestBuffer[server[i].bodylimit() + 2048]; // buffer to store request
 
         if (read(client, requestBuffer, sizeof(requestBuffer)) < 0) { // store request
-          console.issue("Failed to read from client");
+          logMessage("Failed to read from client", server[i]);
           close(client);
           continue;
         }
