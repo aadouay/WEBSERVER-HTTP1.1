@@ -24,8 +24,6 @@ bool  isSecurePath(request &r) {
   {
     if (r.getPath().find("/" + forbeden_folders[i]) != std::string::npos)
       return true;
-    std::cout << "Checking folder: " << forbeden_folders[i] << std::endl;
-    std::cout << "Folder not found in path." << std::endl;
   }
   return false;
 }
@@ -50,7 +48,7 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
     std::string sourcePath = currentServer.route(i).source();
     if (req.getPath() == currentServer.route(i).path()) {
       if(isSecurePath(req) == true){
-        std::cout << "Path is secure, proceeding to serve the file." << std::endl;
+        // std::cout << "Path is secure, proceeding to serve the file." << std::endl;
         response = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\n\r\n" + error(403).page();
         send(client, response.c_str(), response.length(), 0);
         console.METHODS(req.getMethod(), req.getPath(), 403, time::calcl(startRequestTime, time::clock()));
@@ -59,9 +57,9 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
 
       std::ifstream file;
       file.open(sourcePath.c_str());
-      std::cout << "Trying to open file: " << sourcePath << std::endl;
+      // std::cout << "Trying to open file: " << sourcePath << std::endl;
       if (file.is_open()) {
-        std::cout << "Serving file: " << sourcePath << std::endl;
+        // std::cout << "Serving file: " << sourcePath << std::endl;
         std::stringstream body;
         body << file.rdbuf();
         file.close();
