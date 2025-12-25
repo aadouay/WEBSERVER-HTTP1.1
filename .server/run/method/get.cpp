@@ -120,7 +120,7 @@ bool send_file(int client, const std::string& path, const std::string& clean_pat
         "Connection: close\r\n\r\n";
 
   send(client, headers.c_str(), headers.size(), 0);
-  char buffer[8192]; // 8192 = 8KB
+  char buffer[16384]; // 16KB = 16 * 1024 bytes
 
   while(file.good()) {
     file.read(buffer, sizeof(buffer));
@@ -178,23 +178,8 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
         console.METHODS(req.getMethod(), req.getPath(), 403, time::calcl(startRequestTime, time::clock()));
         return ;
       }
-
-      //handele timeout
-
-      // std::ifstream file;
-      // file.open(sourcePath.c_str());
-      // if (file.is_open() == true) {
-      //   std::stringstream body;
-      //   body << file.rdbuf();
-      //   file.close();
-      //   response = "HTTP/1.1 200 OK\r\n" + get_the_Content_Type(part) + "\r\n\r\n" + body.str();
-      //   send(client, response.c_str(), response.length(), 0);
-      //   console.METHODS(req.getMethod(), req.getPath(), 200, time::calcl(startRequestTime, time::clock()));
-      //   return;
-      // }
       if (send_file(client, sourcePath, part, req, startRequestTime) == true)
         return ;
-        
 
       // if (is_dir(req) == true){
       //   std::string dirPath = sourcePath;
