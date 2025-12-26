@@ -35,14 +35,11 @@ bool is_forbedden_path(const std::string& source_path, std::string valid_path) {
     return false;
 }
 
-bool  is_dir(const request& req){
-
+bool  is_dir(std::string const & source_path) {
   struct stat buffer;
-  if(stat(req.getPath().c_str(), &buffer) == 0){
-    if(S_ISDIR(buffer.st_mode))
-      return true;
-  }
-  return false;
+  if (stat(source_path.c_str(), &buffer) != 0)
+        return false;
+  return S_ISDIR(buffer.st_mode);
 }
 
 std::string get_the_Content_Type(const std::string path){
@@ -98,7 +95,7 @@ std::string get_the_Content_Type(const std::string path){
 }
 
 bool send_file(int client, const std::string& path, const std::string& clean_path,
-    const request& req, long long startRequestTime) {
+    const request& req, long long startRequestTime, long long timeout) {
 
   std::ifstream file(path.c_str());
   if (!file.is_open()){
@@ -132,6 +129,12 @@ bool send_file(int client, const std::string& path, const std::string& clean_pat
       ssize_t n = send(client, buffer + bytes_sent, byte_read - bytes_sent, 0);
       if (n <= 0)
         return false;  // client closed or error
+      if(time::calcl(startRequestTime, time::clock()) > timeout){
+        console.info("Connection timed out while sending file: " + path);
+        std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + error(408).page();
+        send(client, response.c_str(), response.length(), 0);
+        return false;
+      }
       bytes_sent += n;
     }
   }
@@ -157,8 +160,31 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
   while (i < currentServer.length()) {
     std::string sourcePath = currentServer.route(i).source();
     if (req.getPath() == currentServer.route(i).path()) {
-      bool isSecurePath = false;
 
+      //check if this route has a GET method allowed
+      bool get_allowed = false;
+      rt& currentRoute = currentServer.route(i);
+      for (size_t i = 0; i < currentRoute.length(); i++)
+      {
+        if(currentRoute.method(i).c_str() == req.getMethod()){
+          get_allowed = true;
+          break ;
+        }
+      }
+      
+      if (get_allowed == false)
+      {
+          std::string response =
+              "HTTP/1.1 405 Method Not Allowed\r\n"
+              "Content-Type: text/html\r\n\r\n" + error(405).page();
+
+          send(client, response.c_str(), response.size(), 0);
+          console.METHODS(req.getMethod(), req.getPath(), 405,
+                          time::calcl(startRequestTime, time::clock()));
+          return ;
+      }
+      // check if the requset poinet to forbidden path !
+      bool isSecurePath = false;
       std::string fullPath = sourcePath;
       size_t pos = 0;
       std::string part;
@@ -168,7 +194,6 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       }
       if (!part.empty() && part[0] == '/')
         part.erase(0, 1);
-      // check if forbedden path
       if(is_forbedden_path(sourcePath, part))
         isSecurePath = true;
 
@@ -178,23 +203,29 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
         console.METHODS(req.getMethod(), req.getPath(), 403, time::calcl(startRequestTime, time::clock()));
         return ;
       }
-      if (send_file(client, sourcePath, part, req, startRequestTime) == true)
+      if (is_dir(fullPath) == true){
+
+        // check if the index is set !!
+        if(currentServer.index().empty() == false){
+          std::string indexPath = fullPath;
+          if (indexPath[indexPath.length() -1] != '/')
+            indexPath += "/";
+          indexPath += currentServer.index();
+          if (send_file(client, indexPath, part, req, startRequestTime, currentServer.timeout()) == true)
+            return ;
+        }
+        // if directory listing is allowed
+        if (currentServer.route(i).dictlist() == true){
+          // implement directory listing func here ...
+        }
+        break ;
+      }
+      if (send_file(client, sourcePath, part, req, startRequestTime, currentServer.timeout()) == true)
         return ;
-
-      // if (is_dir(req) == true){
-      //   std::string dirPath = sourcePath;
-
-      //   std::cout << "hadchi khdam\n";
-
-      //   // check if the index is set !!
-
-      // }
       break;
     }
     i++;
   }
-  //check if the file exist in the server root directory
-  //...
   send(client, response.c_str(), response.length(), 0);
   console.METHODS(req.getMethod(), req.getPath(), 404, time::calcl(startRequestTime, time::clock()));
 }
