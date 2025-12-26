@@ -142,6 +142,8 @@ bool send_file(int client, const std::string& path, const std::string& clean_pat
 
 void methodGet(int client, request& req, ctr& currentServer, long long startRequestTime) {
 
+  std::cout << "Received GET request for path: " << req.getPath() << std::endl;
+
   std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + error(404).page();
 
   std::string notFoundPageSource = currentServer.errorPages()["404"];  
