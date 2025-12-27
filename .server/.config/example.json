@@ -13,7 +13,16 @@
       "index": "index.html",
       "root": "./",
       "routes": [
-        
+        {
+          "path": "/delete/1",
+          "source": "/delete/test1.mp4",
+          "method": ["GET", "DELETE"]
+        },
+        {
+          "path": "/delete/2",
+          "source": "/delete/test2.html",
+          "method": ["GET", "DELETE"]
+        }
       ]
     }
   ]
