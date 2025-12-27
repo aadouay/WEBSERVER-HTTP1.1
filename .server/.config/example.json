@@ -13,45 +13,7 @@
       "index": "index.html",
       "root": "./",
       "routes": [
-        {
-          "path": "/"
-        },
-        {
-          "path": "/image",
-          "source": "./Wallpaper.jpg",
-          "method": ["GET"]
-        },
-        {
-          "path": "/modules",
-          "source": "modules",
-          "method": ["POST"]
-        },
-        {
-          "path": "/list",
-          "dictlist": "true",
-          "source": "./",
-          "method": ["GET"]
-        },
-        {
-          "path": "/delete",
-          "source": "hello.txt",
-          "method": ["GET", "DELETE"]
-        },
-        {
-          "path": "/redirect",
-          "redirect": "https://example.com"
-        },
-        {
-          "path": "/upload",
-          "method": ["GET", "POST"]
-        },
-        {
-          "path": "/cgi/hello",
-          "cgi_script": "./cgi/hello.py",
-          "cgi_interpreter": "/usr/bin/python3",
-          "cgi_timeout": "10",
-          "method": ["GET", "POST"]
-        }
+        
       ]
     }
   ]

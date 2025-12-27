@@ -1,14 +1,18 @@
 #include <server.hpp>
 #include <request.hpp>
+#include <response.hpp>
+#include <error.hpp>
 #include <console.hpp>
 #include <status.hpp>
 #include <time.hpp>
+#include <fstream>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
 void methodDelete(int client, request& req, ctr& currentServer, long long startRequestTime) {
-  // Find the matching route
+
+  // find matching route at config file
   rt* route = NULL;
   for (std::size_t i = 0; i < currentServer.length(); i++) {
     if (currentServer.route(i).path() == req.getPath()) {
@@ -17,17 +21,24 @@ void methodDelete(int client, request& req, ctr& currentServer, long long startR
     }
   }
 
-  // 404 Not Found - Route doesn't exist (YOUR SECURITY APPROACH)
+  std::string sourcePathToDelete;
+
   if (!route) {
-    std::string response = "HTTP/1.1 404 Not Found\r\n"
-                          "Content-Type: text/html\r\n"
-                          "Content-Length: 23\r\n\r\n"
-                          "<h1>404 Not Found</h1>";
-    send(client, response.c_str(), response.length(), 0);
-    return;
+    // absolute path
+    sourcePathToDelete = currentServer.root() + req.getPath();
+  } else {
+    sourcePathToDelete = route->source();
+
+    // 405 method not allowed - DELETE not allowed on this route if exist
+    if (
+      route->method(0) != "DELETE" ||
+      (route->length() > 1 && route->method(1) != "DELETE") ||
+      (route->length() > 2 && route->method(2) != "DELETE")
+    ) {
+      ;
+    }
   }
 
-  // 405 Method Not Allowed - DELETE not allowed on this route
   // if (!(route->method(0) == "DELETE") || !(route->length() > 1
   // && route->method(1) == "DELETE") == false
   // || !(route->length() > 2 && route->method(2) == "DELETE") == false) {

@@ -1,8 +1,10 @@
 #pragma once
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <map>
 #include <status.hpp>
+#include <error.hpp>
 #include <console.hpp>
 #include <request.hpp>
 #include <time.hpp>
@@ -16,6 +18,7 @@ class response {
     std::map<std::string, std::string> _headers;
     std::string _body;
     request _request;
+    ctr _server;
 
   public:
     response(
@@ -24,9 +27,10 @@ class response {
       unsigned int code,
       std::map<std::string, std::string> headers,
       std::string body,
-      request request
+      request request,
+      ctr server
     )
-    : _client(client), _startRequestTime(startRequestTime), _code(code), _headers(headers), _body(body), _request(request) {}
+    : _client(client), _startRequestTime(startRequestTime), _code(code), _headers(headers), _body(body), _request(request), _server(server) {}
 
     void sendResponse(void) {
       std::stringstream response;
@@ -37,7 +41,29 @@ class response {
       }
 
       response << "\r\n";
-      response << this->_body;
+      if (
+        (!this->_body.empty()) || (this->_code >= 100 && this->_code < 200) ||
+        (this->_code >= 200 && this->_code < 300)
+      ) {
+        response << this->_body;
+      }
+      else if ((this->_code >= 300 && this->_code < 400) || (this->_code >= 400 && this->_code < 600)) {
+        std::string errorPage = error(this->_code).page();
+        std::stringstream codeAsStream;
+        codeAsStream << this->_code;
+        std::string fileProvidedPath = this->_server.errorPages()[codeAsStream.str()];
+
+        if (!fileProvidedPath.empty()) {
+          std::fstream fileProvidedToOpen(fileProvidedPath.c_str());
+          if (fileProvidedToOpen) {
+            std::stringstream R;
+            R << fileProvidedToOpen.rdbuf();
+            errorPage = R.str();
+          }
+        }
+
+        response << errorPage;
+      }
 
       send(this->_client, response.str().c_str(), response.str().length(), 0);
       console.METHODS(this->_request.getMethod(), this->_request.getPath(), this->_code, time::calcl(this->_startRequestTime, time::clock()));
