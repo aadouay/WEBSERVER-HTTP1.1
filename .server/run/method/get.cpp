@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string>
-
+#include <dirent.h>
 
 bool is_forbedden_path(const std::string& source_path, std::string valid_path) {
     struct stat buffer;
@@ -140,6 +140,50 @@ bool send_file(int client, const std::string& path, const std::string& clean_pat
   return true;
 }
 
+bool send_directory_listing(int client, const std::string& dirPath,
+                            const request& req,
+                            long long startRequestTime,
+                            long long timeout){
+  DIR *dir;
+  struct dirent *entry;
+  (void)timeout;
+  dir = opendir(dirPath.c_str()); // Open the directory
+  if (dir != NULL) {
+    std::string body;
+    body += "<html><head><title>Index of " + dirPath + "</title></head><body>";
+    body += "<h1>Index of " + dirPath + "</h1><ul>";
+    while ((entry = readdir(dir)) != NULL) {
+      std::string name = entry->d_name;
+      if (name[0] == '.' || name == "..")
+        continue;
+      body += "<li><a href=\""
+           + name + "\">"
+           + name
+           + "</a></li>";
+    }
+    body += "</ul></body></html>";
+    closedir(dir); // Close the directory
+    std::stringstream size;
+    size << body.size();
+    std::string headers =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: " + size.str() + "\r\n"
+        "Connection: close\r\n\r\n";
+    send(client, headers.c_str(), headers.size(), 0);
+    send(client, body.c_str(), body.size(), 0);
+    console.METHODS(req.getMethod(), req.getPath(), 200,
+                  time::calcl(startRequestTime, time::clock()));
+    return true;
+  }
+  else {
+        perror("Error opening directory");
+        return false;
+  }
+  return false;
+}
+
+
 void methodGet(int client, request& req, ctr& currentServer, long long startRequestTime) {
 
   std::cout << "Received GET request for path: " << req.getPath() << std::endl;
@@ -207,6 +251,7 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
 
         // check if the index is set !!
         if(currentServer.index().empty() == false){
+          std::cout << "Sending index file for: " << fullPath << std::endl;
           std::string indexPath = fullPath;
           if (indexPath[indexPath.length() -1] != '/')
             indexPath += "/";
@@ -216,7 +261,9 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
         }
         // if directory listing is allowed
         if (currentServer.route(i).dictlist() == true){
-          // implement directory listing func here ...
+          std::cout << "Sending directory listing for: " << fullPath << std::endl;
+          if (send_directory_listing(client, fullPath, req, startRequestTime, currentServer.timeout()) == true)
+            return ;
         }
         break ;
       }
