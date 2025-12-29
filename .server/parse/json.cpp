@@ -46,7 +46,7 @@ static void fillDefault(void) {
       std::vector<std::string> tempPaths;
       for (std::size_t j = 0; j < server[i].length(); j++) {
         if (server[i].route(j).source().empty())
-          server[i].route(j).source() = server[i].root() + server[i].route(j).path() + server[i].index();
+          server[i].route(j).source() = server[i].root() + server[i].route(j).path();
         else
           server[i].route(j).source() = server[i].root() + server[i].route(j).source();
         if (server[i].route(j).path().empty())

@@ -14,8 +14,16 @@
       "root": "./",
       "routes": [
         {
-          "path": "/delete/1",
-          "source": "/delete/test1.mp4",
+          "path": "/redirect/1",
+          "redirect": "/redirect/2"
+        },
+        {
+          "path": "/redirect/2",
+          "redirect": "https://www.youtube.com/watch?v=hTWKbfoikeg&list=RDhTWKbfoikeg&start_radio=1"
+        },
+        {
+          "path": "/delete",
+          "source": "./delete/index.html",
           "method": ["GET", "DELETE"]
         },
         {

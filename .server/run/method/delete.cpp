@@ -3,9 +3,12 @@
 #include <response.hpp>
 #include <error.hpp>
 #include <console.hpp>
+#include <type.hpp>
 #include <status.hpp>
+#include <path.hpp>
 #include <time.hpp>
 #include <fstream>
+#include <permission.hpp>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -15,7 +18,7 @@ void methodDelete(int client, request& req, ctr& currentServer, long long startR
   // find matching route at config file
   rt* route = NULL;
   for (std::size_t i = 0; i < currentServer.length(); i++) {
-    if (currentServer.route(i).path() == req.getPath()) {
+    if (path::check(currentServer.route(i).path(), req.getPath())) {
       route = &currentServer.route(i);
       break;
     }
@@ -26,6 +29,7 @@ void methodDelete(int client, request& req, ctr& currentServer, long long startR
   if (!route) {
     // absolute path
     sourcePathToDelete = currentServer.root() + req.getPath();
+    // There is NO automatic index resolution for DELETE
   } else {
     sourcePathToDelete = route->source();
 
@@ -45,7 +49,7 @@ void methodDelete(int client, request& req, ctr& currentServer, long long startR
 
   // check if file exists
   struct stat fileStat;
-  if (stat(sourcePathToDelete.c_str(), &fileStat) != 0) {
+  if (stat(sourcePathToDelete.c_str(), &fileStat) != 0 || permission::check(sourcePathToDelete)) {
     // 404 not found
     std::map<std::string, std::string> Theaders;
     Theaders["Content-Type"] = "text/html";
