@@ -27,6 +27,9 @@
           "path": "/upload",
           "source": "/upload",
           "method": ["GET", "POST"]
+        },
+        {
+          "path": "/"
         }
       ]
     }

@@ -126,7 +126,12 @@ void methodPost(int client, request& req, ctr& currentServer, long long startReq
       break;
     }
   }
-
+  if (route == NULL) {
+    std::map<std::string, std::string> headers;
+    std::string body = "";
+    response(client, startRequestTime, 404, headers, body, req, currentServer).sendResponse();
+    return;
+  }
   if (
     route->method(0) != "POST" &&
     (route->length() > 1 && route->method(1) != "POST") &&
@@ -139,15 +144,8 @@ void methodPost(int client, request& req, ctr& currentServer, long long startReq
     return;
   }
 
-  if (req.getBody().empty()) {
-    std::map<std::string, std::string> headers;
-    std::string body = "";
-    response res(client, startRequestTime, 400, headers, body, req, currentServer);
-    res.sendResponse();
-    return;
-  }
 
-  if (req.getHeaders().find("Content-Length") != req.getHeaders().end() && req.getHeaders().at("Content-Length") != "0") {
+  if (!req.getBody().empty() && req.getHeaders().find("Content-Length") != req.getHeaders().end() && req.getHeaders().at("Content-Length") != "0") {
     std::string contentType = req.getHeaders().at("Content-Type");
     if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
     {
@@ -197,9 +195,15 @@ void methodPost(int client, request& req, ctr& currentServer, long long startReq
       return;
     }
   }
+  else if (req.getBody().empty()) {
+    std::map<std::string, std::string> headers;
+    response(client, startRequestTime, 200, headers, "[]", req, currentServer).sendResponse();
+    return;
+  }
   else {
     std::map<std::string, std::string> headers;
-    response(client, startRequestTime, 411, headers, "", req, currentServer).sendResponse();
+    std::string body = "";
+    response(client, startRequestTime, 400, headers, body, req, currentServer).sendResponse();
     return;
   }
 }
