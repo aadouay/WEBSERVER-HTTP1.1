@@ -197,12 +197,12 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       // child process
       close(pipeFD[0]); // close read end
       dup2(pipeFD[1], 1); // redirect stdout to pipe write end
-      extern char** environ;
+      // extern char** environ;
       char* argv[3];
       argv[0] = const_cast<char*>(route->cgiInterpreter().c_str());
       argv[1] = const_cast<char*>(route->cgiScript().c_str());
       argv[2] = NULL;
-      execve(argv[0], argv, environ);
+      execve(argv[0], argv, NULL);
       _exit(127);
     } else {
 
@@ -210,7 +210,34 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       close(pipeFD[1]); // close write end
       int status = 0;
       int code = 0;
-      waitpid(pid, &status, 0); // wait for child process
+
+      while (true) {
+        pid_t r = waitpid(pid, &status, WNOHANG);
+        if (r == pid) break; // child finished
+        // check for timeout
+        if (r == -1) {
+          // 500 internal server error
+          std::map<std::string, std::string> Theaders;
+          Theaders["Content-Type"] = "text/html";
+          response(client, startRequestTime, 500, Theaders, "", req, currentServer).sendResponse();
+          return;
+        }
+
+        bool time_exceeded = false;
+        if (route->cgiTimeout() > 0 && time::calcl(startRequestTime, time::clock()) > static_cast<long long>(route->cgiTimeout())) {
+          // 504 gateway timeout
+          time_exceeded = true;
+          waitpid(pid, NULL, 0); // reap
+        }
+        if (time_exceeded) {
+          kill(pid, SIGKILL);
+          std::map<std::string, std::string> Theaders;
+          Theaders["Content-Type"] = "text/html";
+          response(client, startRequestTime, 504, Theaders, "", req, currentServer).sendResponse();
+          return;
+        }
+        usleep(1000); // sleep for 1ms before checking again
+      }
 
       if (WIFEXITED(status))
         code = WEXITSTATUS(status);
@@ -238,14 +265,6 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
         std::map<std::string, std::string> Theaders;
         Theaders["Content-Type"] = "text/html";
         response(client, startRequestTime, 500, Theaders, "", req, currentServer).sendResponse();
-        return;
-      }
-
-      if (route->cgiTimeout() > 0 && time::calcl(startRequestTime, time::clock()) > static_cast<long long>(route->cgiTimeout())) {
-        // 504 gateway timeout
-        std::map<std::string, std::string> Theaders;
-        Theaders["Content-Type"] = "text/html";
-        response(client, startRequestTime, 504, Theaders, "", req, currentServer).sendResponse();
         return;
       }
 
