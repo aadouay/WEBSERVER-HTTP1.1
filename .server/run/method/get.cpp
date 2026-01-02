@@ -161,7 +161,7 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       // 404 not found
       std::map<std::string, std::string> Theaders;
       Theaders["Content-Type"] = "text/html";
-      response(client, startRequestTime, 404, Theaders, "", req, currentServer).sendResponse();
+      response(client, startRequestTime, 403, Theaders, "", req, currentServer).sendResponse();
       return;
     }
 
@@ -212,7 +212,7 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       int code = 0;
 
       while (true) {
-        pid_t r = waitpid(pid, &status, WNOHANG);
+        pid_t r = waitpid(pid, &status, WNOHANG); // NOT block. Just tell me the current state of the child
         if (r == pid) break; // child finished
         // check for timeout
         if (r == -1) {
@@ -227,10 +227,10 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
         if (route->cgiTimeout() > 0 && time::calcl(startRequestTime, time::clock()) > static_cast<long long>(route->cgiTimeout())) {
           // 504 gateway timeout
           time_exceeded = true;
-          waitpid(pid, NULL, 0); // reap
         }
         if (time_exceeded) {
           kill(pid, SIGKILL);
+          waitpid(pid, NULL, 0); // reap
           std::map<std::string, std::string> Theaders;
           Theaders["Content-Type"] = "text/html";
           response(client, startRequestTime, 504, Theaders, "", req, currentServer).sendResponse();
@@ -271,6 +271,27 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       std::map<std::string, std::string> Theaders;
       Theaders["Content-Type"] = "text/html";
       response(client, startRequestTime, 200, Theaders, cgiOutput.str(), req, currentServer).sendResponse();
+      /*
+      🧩 Perfect CGI checklist
+
+      File exists & executable ✅
+
+      Timeout handling ✅
+
+      Non-blocking wait ✅
+
+      Redirect stdout + stderr ✅
+
+      Set proper CGI environment ❌
+
+      Handle POST → stdin ❌
+
+      Parse CGI headers & separate body ❌
+
+      No reliance on exit code ❌
+
+      Close all FDs, reap child ✅
+      */
     }
 
     return;
@@ -278,6 +299,6 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
 
   std::map<std::string, std::string> Theaders;
   Theaders["Content-Type"] = type::get(sourcePathToHandle);
-  response(client, startRequestTime, 1337, Theaders, "", req, currentServer).sendGETchunks(sourcePathToHandle);
+  response(client, startRequestTime, 200, Theaders, "", req, currentServer).sendGETchunks(sourcePathToHandle);
   return;
 }
