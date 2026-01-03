@@ -60,6 +60,11 @@
           "cgi_script": "./cgi/blogs.php",
           "cgi_interpreter": "/usr/bin/php",
           "cgi_timeout": "240"
+        },
+        {
+          "path": "/longcgi",
+          "cgi_script": "./cgi/longcgi.py",
+          "cgi_interpreter": "/usr/bin/python3"
         }
       ]
     }

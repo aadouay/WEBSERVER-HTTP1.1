@@ -41,8 +41,8 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
 
   std::string sourcePathToHandle;
   // check if we have a cookie for sestion management
-  std::map<std::string, std::string> headers = req.getHeaders();
-  std::map<std::string, std::string>::iterator it = headers.find("Cookie");
+  // std::map<std::string, std::string> headers = req.getHeaders();
+  // std::map<std::string, std::string>::iterator it = headers.find("Cookie");
 
   if (!route) {
     // absolute path
@@ -229,6 +229,9 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
           time_exceeded = true;
         }
         if (time_exceeded) {
+          console.warning("CGI script timeout exceeded, killing process");
+          std::cout << "Timeout exceeded: " << time::calcl(startRequestTime, time::clock()) << " seconds." << std::endl;
+          std::cout << "CGI timeout = " << route->cgiTimeout() << std::endl;
           kill(pid, SIGKILL);
           waitpid(pid, NULL, 0); // reap
           std::map<std::string, std::string> Theaders;
