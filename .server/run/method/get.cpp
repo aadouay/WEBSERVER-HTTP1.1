@@ -271,27 +271,6 @@ void methodGet(int client, request& req, ctr& currentServer, long long startRequ
       std::map<std::string, std::string> Theaders;
       Theaders["Content-Type"] = "text/html";
       response(client, startRequestTime, 200, Theaders, cgiOutput.str(), req, currentServer).sendResponse();
-      /*
-      🧩 Perfect CGI checklist
-
-      File exists & executable ✅
-
-      Timeout handling ✅
-
-      Non-blocking wait ✅
-
-      Redirect stdout + stderr ✅
-
-      Set proper CGI environment ❌
-
-      Handle POST → stdin ❌
-
-      Parse CGI headers & separate body ❌
-
-      No reliance on exit code ❌
-
-      Close all FDs, reap child ✅
-      */
     }
 
     return;
