@@ -64,7 +64,8 @@
         {
           "path": "/longcgi",
           "cgi_script": "./cgi/longcgi.py",
-          "cgi_interpreter": "/usr/bin/python3"
+          "cgi_interpreter": "/usr/bin/python3",
+          "cgi_timeout": "8000"
         }
       ]
     }

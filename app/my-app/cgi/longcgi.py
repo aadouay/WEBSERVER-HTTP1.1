@@ -12,10 +12,10 @@ print("PID =", os.getpid())
 sys.stdout.flush()  # flush so server sees output immediately
 
 i = 0
-while i < 4:  # run 10 seconds
+while i < 3:  # run 2 seconds
     print(f"Running... second {i}")
     sys.stdout.flush()  # flush every iteration
-    time.sleep(1)
+    time.sleep(1)  # sleep for 2 seconds
     i += 1
 
 print("CGI finished")
